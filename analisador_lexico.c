@@ -33,11 +33,13 @@ bool especiaisCompostos (char *c)
 
 int compara(const void *a, const void *b)
 {
-    return strcmp(a, b);
+    return strcmp(*(char **) a, *(char **) b);
 }
 
 bool palavraReservada(char *c){
-    char *str;
+    char **str;
+    int tam;
+    
 
     const char *palavras[] =
     {
@@ -45,7 +47,8 @@ bool palavraReservada(char *c){
         "label", "not", "of", "or", "procedure", "program", "then", "type", "var", "while"
     };
 
-    str = bsearch(c, palavras, sizeof(palavras), sizeof(char *), compara);
+    tam = sizeof(palavras) / sizeof(palavras[0]);
+    str = bsearch(&c, palavras, tam, sizeof(char *), compara);
 
     if (str)
         return true;
