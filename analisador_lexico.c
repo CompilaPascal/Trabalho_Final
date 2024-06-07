@@ -89,30 +89,30 @@ void analisadorLexico()
         }
 
         if (delimitador(*prox)) {
+            consumiu();
             s = strcat(s, prox);
+        
             if (s[0] == ':') {
                 *prox = proximo();
                 if (*prox == '=') {
                     s = strcat(s, prox);
                     consumiu();
+                    printf("Token delimitador composto: [%s]\n", s);
+                    continue;
                 }
-                printf("Token delimitador composto: [%s]\n", s);
-                s[0] = '\0';
             }
             else if (s[0] == '.') {
                 *prox = proximo();
                 if (*prox == '.') {
                     s = strcat(s, prox);
                     consumiu();
+                    printf("Token delimitador composto: [%s]\n", s);
+                    continue;
                 }
-                printf("Token delimitador composto: [%s]\n", s);
-            
-            }
-            else {
-                printf("entrou\n");
-                printf("Token delimitador: [%s]\n", s);
             }
 
+            printf("Token delimitador: [%s]\n", s);
+        
             s[0] = '\0';
         }
         else if (letras(*prox)) {
