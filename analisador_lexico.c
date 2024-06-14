@@ -55,7 +55,6 @@ bool palavraReservada(char *c){
     
     return false;
 }
-
 char buf = '\0';
 
 void consumiu()
@@ -75,6 +74,24 @@ char proximo()
     buf = getchar();
     
     return buf;
+}
+
+void consomeComentario()
+{
+    char pas, prox;
+
+    pas = proximo();
+    consumiu();
+    prox = proximo();
+    consumiu();
+
+    while (1) {
+        if (pas == '*' && prox == ')')
+            break;
+        pas = prox;
+        prox = proximo();
+        consumiu();
+    }
 }
 
 void analisadorLexico()
@@ -101,6 +118,7 @@ void analisadorLexico()
                     s = strcat(s, prox);
                     consumiu();
                     printf("Token delimitador composto: [%s]\n", s);
+
                     continue;
                 }
             }
@@ -110,6 +128,16 @@ void analisadorLexico()
                     s = strcat(s, prox);
                     consumiu();
                     printf("Token delimitador composto: [%s]\n", s);
+                    continue;
+                }
+            }
+            else if (s[0] == '(') {
+                *prox = proximo();
+                if (*prox == '*') {
+                    s = strcat(s, prox);
+                    consumiu();
+                    consomeComentario();
+                    printf("Comentario\n");
                     continue;
                 }
             }
@@ -157,4 +185,5 @@ void analisadorLexico()
 int main()
 {
     analisadorLexico();
+    return 0;
 }
