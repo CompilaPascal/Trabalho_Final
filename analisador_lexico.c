@@ -43,8 +43,8 @@ bool palavraReservada(char *c){
 
     const char *palavras[] =
     {
-        "and", "array", "begin", "div", "do", "else", "end", "function", "if", 
-        "label", "not", "of", "or", "procedure", "program", "then", "type", "var", "while"
+        "and", "array", "begin", "div", "do", "else", "end", "function", "goto", "if", 
+        "label", "not", "of", "or", "procedure", "program", "then", "type", "var", "while", "read", "write"
     };
 
     tam = sizeof(palavras) / sizeof(palavras[0]);
