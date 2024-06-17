@@ -5,10 +5,9 @@
 
 bool delimitador(char c)
 {
-    return(c == ' ' || c == '+' || c == '.' || c == ';' || c == '('
-    || c == ')' || c == '[' || c == ']' || c == '=' || c == '-' 
-    || c == '<' || c == '>' || c == ':' || c ==',' || c == '*'
-    || c == '\'' ||  c == '\"');
+    return(c == ' '  || c == '.' || c == ';' || c == '('
+    || c == ')' || c == '[' || c == ']' 
+     || c == ':' || c ==',' );
 }
 
 bool operador (char c){
@@ -28,7 +27,7 @@ bool numeros(char c)
 
 bool especiaisCompostos (char *c)
 {
-    return !strcmp(c, ":=") || !strcmp(c, "..") || !strcmp(c, "(*") || !strcmp(c, "*)");
+    return !strcmp(c, ":=") || !strcmp(c, "<=") || !strcmp(c, ">=") || !strcmp(c, "<>");
 }
 
 int compara(const void *a, const void *b)
