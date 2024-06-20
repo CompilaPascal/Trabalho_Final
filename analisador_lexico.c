@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 bool delimitador(char c)
 {
@@ -13,16 +14,6 @@ bool delimitador(char c)
 bool operador (char c){
     return (c == '+' || c == '-' || c == '*' || c == '/' 
     || c == '>' || c == '>' || c == '=');
-}
-
-bool letras(char c)
-{
-    return (c >= 65 && c <= 90) || (c >= 97 && c <= 122);
-}
-
-bool numeros(char c)
-{
-    return (c >= 48 && c <= 57);
 }
 
 bool especiaisCompostos (char *c)
@@ -145,12 +136,12 @@ void analisadorLexico()
         
             s[0] = '\0';
         }
-        else if (letras(*prox)) {
+        else if (isalpha(*prox)) {
             do {
                 consumiu();
                 s = strcat(s, prox);
                 *prox = proximo();
-            } while(letras(*prox) || numeros(*prox));
+            } while(isalpha(*prox) || isdigit(*prox));
 
             if (palavraReservada(s))
                 printf("Token palavra reservada: [%s]\n", s);
@@ -159,14 +150,14 @@ void analisadorLexico()
 
             s[0] = '\0';
         }
-        else if (numeros(*prox)) {
+        else if (isdigit(*prox)) {
             do {
                 consumiu();
                 s = strcat(s, prox);
                 *prox = proximo();
-            } while(numeros(*prox));
+            } while(isdigit(*prox));
 
-            if (letras(*prox)) {
+            if (isalpha(*prox)) {
                 printf("erro\n");
                 break;
             }
