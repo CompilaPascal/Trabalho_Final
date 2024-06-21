@@ -4,16 +4,21 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+typedef struct {
+    int keyword, operator, compoundOperator;
+    int identifier, number, delimiter, comments, unknown;
+}tokens;
+
 bool delimitador(char c)
 {
-    return(c == ' '  || c == '.' || c == ';' || c == '('
-    || c == ')' || c == '[' || c == ']' 
-     || c == ':' || c ==',' );
+    return(c == ' '  || c == '.' || c == ';' 
+    || c == '(' || c == ')' || c == '[' 
+    || c == ']' || c == ':' || c ==',' );
 }
 
 bool operador (char c){
     return (c == '+' || c == '-' || c == '*' || c == '/' 
-    || c == '>' || c == '>' || c == '=');
+    || c == '<' || c == '>' || c == '=');
 }
 
 bool especiaisCompostos (char *c)
@@ -34,17 +39,18 @@ bool palavraReservada(char *c){
     const char *palavras[] =
     {
         "and", "array", "begin", "div", "do", "else", "end", "function", "goto", "if", 
-        "label", "not", "of", "or", "procedure", "program", "then", "type", "var", "while", "read", "write"
+        "label", "not", "of", "or", "procedure", "program","read", "then", "type", "var", "while", "write"
     };
 
     tam = sizeof(palavras) / sizeof(palavras[0]);
     str = bsearch(&c, palavras, tam, sizeof(char *), compara);
 
-    if (str)
+    if (str) 
         return true;
     
     return false;
 }
+
 char buf = '\0';
 
 void consumiu()
@@ -84,10 +90,15 @@ void consomeComentario()
     }
 }
 
+tokens *count;
+
 void analisadorLexico()
 {
     char prox[2];
+
     prox[1] = '\0';
+    count = calloc(1, sizeof(tokens));
+
     while (*prox = proximo(), *prox != EOF) {
         char *s;
 
@@ -107,17 +118,8 @@ void analisadorLexico()
                 if (*prox == '=') {
                     s = strcat(s, prox);
                     consumiu();
-                    printf("Token delimitador composto: [%s]\n", s);
-
-                    continue;
-                }
-            }
-            else if (s[0] == '.') {
-                *prox = proximo();
-                if (*prox == '.') {
-                    s = strcat(s, prox);
-                    consumiu();
-                    printf("Token delimitador composto: [%s]\n", s);
+                    count->compoundOperator ++;
+                    //printf("COMPOUND OPERATOR: [%s]\n", s);
                     continue;
                 }
             }
@@ -127,14 +129,45 @@ void analisadorLexico()
                     s = strcat(s, prox);
                     consumiu();
                     consomeComentario();
-                    printf("Comentario\n");
+                    //printf("COMENTARIO\n");
+                    count->comments++;
                     continue;
                 }
             }
 
-            printf("Token delimitador: [%s]\n", s);
-        
+            count->delimiter++;
+            //printf("DELIMITER [%s]\n", s);        
             s[0] = '\0';
+        }
+        else if (operador(*prox)) {
+            consumiu();
+            s = strcat(s, prox);
+
+            if (s[0] == '<' || s[0] == '>') {
+                *prox = proximo();
+                if (*prox == '=') {
+                    s = strcat(s, prox);
+                    consumiu();
+                    count->compoundOperator++;
+                    //printf("COMPOUND OPERATOR: [%s]\n", s);
+                    continue;
+                } 
+            }
+
+            if (s[0] == '<') {
+                *prox = proximo();
+                if (*prox == '>') {
+                    s = strcat(s, prox);
+                    consumiu();
+                    count->compoundOperator++;
+                    //printf("COMPOUND OPERATOR: [%s]\n", s);
+                    continue;
+                } 
+            }
+
+            //printf("OPERATOR [%s]\n", s);
+            count->operator++;
+
         }
         else if (isalpha(*prox)) {
             do {
@@ -143,10 +176,14 @@ void analisadorLexico()
                 *prox = proximo();
             } while(isalpha(*prox) || isdigit(*prox));
 
-            if (palavraReservada(s))
-                printf("Token palavra reservada: [%s]\n", s);
-            else
-                printf("Token palavra: [%s]\n", s);
+            if (palavraReservada(s)) {
+                count->keyword++;
+               // printf("KEYWORD [%s]\n", s);
+            }
+            else {
+                count->identifier++;
+                //printf("IDENTIFIER: [%s]\n", s);
+            }
 
             s[0] = '\0';
         }
@@ -158,16 +195,21 @@ void analisadorLexico()
             } while(isdigit(*prox));
 
             if (isalpha(*prox)) {
-                printf("erro\n");
-                break;
+                count->unknown++;
+                //printf("primeiro UKNOWN\n");
+                continue;
+                //break;
             }
             
-            printf("Token numero: [%s]\n", s);
+            count->number++;
+            //printf("NUMBER: [%s]\n", s);
             s[0] = '\0';
         }
         else {
-            printf("erro\n");
-            break;
+            //printf("UNKNOWN [%s]\n", s);
+            count->unknown++;
+            consumiu();
+            //break;
         }
     }
 }
@@ -175,5 +217,15 @@ void analisadorLexico()
 int main()
 {
     analisadorLexico();
+
+    printf("KEYWORD: %d\n", count->keyword);
+    printf("IDENTIFIER: %d\n", count->identifier);
+    printf("NUMBER: %d\n", count->number);
+    printf("OPERATOR: %d\n", count->operator);
+    printf("COMPOUND OPERATOR: %d\n", count->compoundOperator);
+    printf("DELIMITER: %d\n", count->delimiter);
+    printf("COMMENTS: %d\n", count->comments);
+    printf("UNKNOWN: %d\n", count->unknown);
+
     return 0;
 }
