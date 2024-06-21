@@ -11,7 +11,7 @@ typedef struct {
 
 bool delimitador(char c)
 {
-    return(c == ' '  || c == '.' || c == ';' 
+    return(c == '.' || c == ';' 
     || c == '(' || c == ')' || c == '[' 
     || c == ']' || c == ':' || c ==',' );
 }
@@ -58,53 +58,50 @@ void consumiu()
     buf = '\0';
 }
 
-char proximo()
+char proximo(FILE *file)
 {
-    if (buf != '\0') {
-        char temp;
-        temp = buf;
-        buf = '\0';
-        return temp;
-    }
+    if (buf != '\0')
+        return buf;
 
-    buf = getchar();
+    buf = fgetc(file);
     
     return buf;
 }
 
-void consomeComentario()
+void consomeComentario(FILE *file)
 {
     char pas, prox;
 
-    pas = proximo();
+    pas = proximo(file);
     consumiu();
-    prox = proximo();
+    prox = proximo(file);
     consumiu();
 
     while (1) {
         if (pas == '*' && prox == ')')
             break;
         pas = prox;
-        prox = proximo();
+        prox = proximo(file);
         consumiu();
     }
 }
 
 tokens *count;
 
-void analisadorLexico()
+void analisadorLexico(FILE *file)
 {
     char prox[2];
 
     prox[1] = '\0';
     count = calloc(1, sizeof(tokens));
 
-    while (*prox = proximo(), *prox != EOF) {
-        char *s;
+    char *s;
+    s = malloc(sizeof(char) * 1000);
+    while (*prox = proximo(file), *prox != EOF) {
 
-        s = malloc(sizeof(char) * 102);
         s[0] = '\0';
-        if (*prox == ' ' || *prox == '\n') {
+
+        if (isspace(*prox)) {
             consumiu();
             continue;
         }
@@ -114,7 +111,7 @@ void analisadorLexico()
             s = strcat(s, prox);
         
             if (s[0] == ':') {
-                *prox = proximo();
+                *prox = proximo(file);
                 if (*prox == '=') {
                     s = strcat(s, prox);
                     consumiu();
@@ -124,11 +121,10 @@ void analisadorLexico()
                 }
             }
             else if (s[0] == '(') {
-                *prox = proximo();
+                *prox = proximo(file);
                 if (*prox == '*') {
-                    s = strcat(s, prox);
                     consumiu();
-                    consomeComentario();
+                    consomeComentario(file);
                     //printf("COMENTARIO\n");
                     count->comments++;
                     continue;
@@ -137,14 +133,14 @@ void analisadorLexico()
 
             count->delimiter++;
             //printf("DELIMITER [%s]\n", s);        
-            s[0] = '\0';
+            //s[0] = '\0';
         }
         else if (operador(*prox)) {
             consumiu();
             s = strcat(s, prox);
 
-            if (s[0] == '<' || s[0] == '>') {
-                *prox = proximo();
+            if (s[0] == '>') {
+                *prox = proximo(file);
                 if (*prox == '=') {
                     s = strcat(s, prox);
                     consumiu();
@@ -155,8 +151,8 @@ void analisadorLexico()
             }
 
             if (s[0] == '<') {
-                *prox = proximo();
-                if (*prox == '>') {
+                *prox = proximo(file);
+                if (*prox == '>' || *prox == '=') {
                     s = strcat(s, prox);
                     consumiu();
                     count->compoundOperator++;
@@ -173,8 +169,8 @@ void analisadorLexico()
             do {
                 consumiu();
                 s = strcat(s, prox);
-                *prox = proximo();
-            } while(isalpha(*prox) || isdigit(*prox));
+                *prox = proximo(file);
+            } while(isalnum(*prox));
 
             if (palavraReservada(s)) {
                 count->keyword++;
@@ -185,17 +181,18 @@ void analisadorLexico()
                 //printf("IDENTIFIER: [%s]\n", s);
             }
 
-            s[0] = '\0';
+            //s[0] = '\0';
         }
         else if (isdigit(*prox)) {
             do {
                 consumiu();
                 s = strcat(s, prox);
-                *prox = proximo();
+                *prox = proximo(file);
             } while(isdigit(*prox));
 
             if (isalpha(*prox)) {
                 count->unknown++;
+                consumiu();
                 //printf("primeiro UKNOWN\n");
                 continue;
                 //break;
@@ -203,7 +200,7 @@ void analisadorLexico()
             
             count->number++;
             //printf("NUMBER: [%s]\n", s);
-            s[0] = '\0';
+            //s[0] = '\0';
         }
         else {
             //printf("UNKNOWN [%s]\n", s);
@@ -214,9 +211,18 @@ void analisadorLexico()
     }
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    analisadorLexico();
+    if (argc != 2) {
+        printf("Use %s <file-name>\n", argv[0]);
+        return 1;
+    }
+
+    FILE *file = fopen(argv[1], "r");
+
+    analisadorLexico(file);
+
+    fclose(file);
 
     printf("KEYWORD: %d\n", count->keyword);
     printf("IDENTIFIER: %d\n", count->identifier);
