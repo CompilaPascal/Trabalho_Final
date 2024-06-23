@@ -98,8 +98,7 @@ void analisadorLexico(FILE *file)
                 if (*prox == '=') {
                     s = strcat(s, prox);
                     consumiu();
-                    count->compoundOperator ++;
-                    //printf("COMPOUND OPERATOR: [%s]\n", s);
+                    count->compoundOperator++;
                     continue;
                 }
             }
@@ -126,7 +125,6 @@ void analisadorLexico(FILE *file)
                     s = strcat(s, prox);
                     consumiu();
                     count->compoundOperator++;
-                    //printf("COMPOUND OPERATOR: [%s]\n", s);
                     continue;
                 } 
             }
@@ -136,7 +134,6 @@ void analisadorLexico(FILE *file)
                     s = strcat(s, prox);
                     consumiu();
                     count->compoundOperator++;
-                    //printf("COMPOUND OPERATOR: [%s]\n", s);
                     continue;
                 } 
             }
@@ -150,9 +147,7 @@ void analisadorLexico(FILE *file)
                 }
             }
 
-            //printf("OPERATOR [%s]\n", s);
             count->operator++;
-
         }
         else if (isalpha(*prox)) {
             do {
@@ -193,16 +188,12 @@ void analisadorLexico(FILE *file)
                 else
                     count->delimiter++;
             }
-            
+
             count->number++;
-            //printf("NUMBER: [%s]\n", s);
-            //s[0] = '\0';
         }
         else {
-            //printf("UNKNOWN [%s]\n", s);
             count->unknown++;
             consumiu();
-            //break;
         }
     }
 }
