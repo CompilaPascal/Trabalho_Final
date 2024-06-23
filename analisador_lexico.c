@@ -174,12 +174,24 @@ void analisadorLexico(FILE *file)
                 *prox = proximo(file);
             } while(isdigit(*prox));
 
-            if (isalpha(*prox)) {
-                count->unknown++;
+            if (*prox == '.') {
+                char dot[2];
+
+                dot[0] = *prox;
+                dot[1] = '\0';
                 consumiu();
-                //printf("primeiro UKNOWN\n");
-                continue;
-                //break;
+
+                *prox = proximo(file);
+                if (isdigit(*prox)) {
+                    s = strcat(s, dot);
+                    do {
+                        consumiu();
+                        s = strcat(s, prox);
+                        *prox = proximo(file);
+                    } while(isdigit(*prox));
+                }
+                else
+                    count->delimiter++;
             }
             
             count->number++;
