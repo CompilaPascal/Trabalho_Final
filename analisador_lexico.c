@@ -130,8 +130,7 @@ void analisadorLexico(FILE *file)
                     continue;
                 } 
             }
-
-            if (s[0] == '<') {
+            else if (s[0] == '<') {
                 *prox = proximo(file);
                 if (*prox == '>' || *prox == '=') {
                     s = strcat(s, prox);
@@ -164,14 +163,9 @@ void analisadorLexico(FILE *file)
 
             if (palavraReservada(s)) {
                 count->keyword++;
-               // printf("KEYWORD [%s]\n", s);
             }
-            else {
+            else 
                 count->identifier++;
-                //printf("IDENTIFIER: [%s]\n", s);
-            }
-
-            //s[0] = '\0';
         }
         else if (isdigit(*prox)) {
             do {
