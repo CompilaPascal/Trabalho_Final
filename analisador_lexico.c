@@ -68,28 +68,11 @@ char proximo(FILE *file)
     return buf;
 }
 
-void consomeComentario(FILE *file)
-{
-    char pas, prox;
-
-    pas = proximo(file);
-    consumiu();
-    prox = proximo(file);
-    consumiu();
-
-    while (1) {
-        if (pas == '*' && prox == ')')
-            break;
-        pas = prox;
-        prox = proximo(file);
-        consumiu();
-    }
-}
-
 tokens *count;
 
 void analisadorLexico(FILE *file)
 {
+    tokens past;
     char prox[2];
 
     prox[1] = '\0';
@@ -124,16 +107,14 @@ void analisadorLexico(FILE *file)
                 *prox = proximo(file);
                 if (*prox == '*') {
                     consumiu();
-                    consomeComentario(file);
-                    //printf("COMENTARIO\n");
-                    count->comments++;
+                    past = *count;
+                    count->delimiter++;
+                    count->operator++;
                     continue;
                 }
             }
 
             count->delimiter++;
-            //printf("DELIMITER [%s]\n", s);        
-            //s[0] = '\0';
         }
         else if (operador(*prox)) {
             consumiu();
@@ -159,6 +140,15 @@ void analisadorLexico(FILE *file)
                     //printf("COMPOUND OPERATOR: [%s]\n", s);
                     continue;
                 } 
+            }
+            else if (s[0] == '*') {
+                *prox = proximo(file);
+                if (*prox == ')') {
+                    consumiu();
+                    *count = past;
+                    count->comments++;
+                    continue;
+                }
             }
 
             //printf("OPERATOR [%s]\n", s);
