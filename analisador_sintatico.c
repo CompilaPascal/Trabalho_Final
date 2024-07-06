@@ -16,23 +16,33 @@ void programa()
     if (strcmp(atual.val, "program") == 0) {
         analisadorLexico();
         identificador(atual);
+
         if (strcmp(atual.val, "(")) {
             analisadorLexico();
             listaIdentificadores();
-            analisadorLexico();
-            if (strcmp(atual.val, ")") != 0) {
+
+            if (!strcmp(atual.val, ")")) {
+                analisadorLexico();
+            }
+            else {
                 printf("ERRO\n");
                 exit(1);
             }
         }
-        analisadorLexico();
-        if (strcmp(atual.val, ";") != 0) {
+        if (!strcmp(atual.val, ";") != 0) {
+            analisadorLexico();
+        }
+        else {
             printf("ERRO\n");
             exit(1);
         }
-        analisadorLexico();
+
         bloco();
-        if (strcmp(atual.val, ".")) {
+
+        if (!strcmp(atual.val, ".")) {
+            analisadorLexico();
+        }
+        else {
             printf("ERRO\n");
             exit(1);
         }
@@ -42,9 +52,11 @@ void programa()
 void bloco()
 {
     if (!strcmp(atual.val, "label")) {
+        analisadorLexico();
         declaracaoRotulo();
     }
     if (!strcmp(atual.val, "var")){
+        analisadorLexico();
         parteDeclaracaoVariaveis();
     }
 
@@ -56,10 +68,15 @@ void declaracaoRotulo()
     if (!strcmp(atual.val, "label")){
         analisadorLexico();
         numero();
+        
         while (!strcmp(atual.val, ",")){
+            analisadorLexico();
             numero();
         }
-        if(strcmp(atual.val, ";")){
+        
+        if(!strcmp(atual.val, ";")){
+            analisadorLexico();
+        } else {
             printf("ERRO\n");
             exit(1);
         }
@@ -86,19 +103,24 @@ void parteDeclaracaoVariaveis()
         analisadorLexico();
         declaracaoVariaveis();
         analisadorLexico();
+
         if (strcmp(atual.val, ";")) {
             printf("ERRO\n");
             exit(1);
         }
+
         analisadorLexico();
+        
         while (atual.tipoToken == identifier) {
             declaracaoVariaveis();
             analisadorLexico();
-            if (strcmp(atual.val, ";")) {
+            
+            if (!strcmp(atual.val, ";")) {
+                analisadorLexico();
+            } else {
                 printf("ERRO\n");
                 exit(1);
             }
-            analisadorLexico();
         }
     }
     else {
@@ -110,6 +132,7 @@ void parteDeclaracaoVariaveis()
 void declaracaoVariaveis ()
 {
     listaIdentificadores();
+    
     if (!strcmp(atual.val, ":")) {
         analisadorLexico();
         tipo();
@@ -132,8 +155,11 @@ void comandoComposto ()
     if (!strcmp(atual.val, "begin")) {
         analisadorLexico();
         comando();
-        while(!strcmp(atual.val, ";"))
+        
+        while(!strcmp(atual.val, ";")) {
+            analisadorLexico();
             comando();
+        }
 
         if (strcmp(atual.val, "end")) {
             printf("ERRO\n");
@@ -150,7 +176,10 @@ void comando ()
 {
     if (atual.tipoToken == number) {
         analisadorLexico();
-        if (strcmp(atual.val, ":")) {
+        
+        if (!strcmp(atual.val, ":")) {
+            analisadorLexico();
+        } else {
             printf("ERRO\n");
             exit(1);
         }
@@ -160,17 +189,23 @@ void comando ()
 
 void comandoSemRotulo()
 {
-    if (atual.tipoToken == identifier) 
+    if (atual.tipoToken == identifier) {
+        analisadorLexico();
         atribuicao();
-    else if (!strcmp(atual.val, "goto")) 
+    }
+    else if (!strcmp(atual.val, "goto")) {
+        analisadorLexico();
         desvios();
-    else if (!strcmp(atual.val, "begin")) 
+    } else if (!strcmp(atual.val, "begin")) {
+        analisadorLexico();
         comandoComposto();
-    else if (!strcmp(atual.val, "if")) 
+    } else if (!strcmp(atual.val, "if")) {
+        analisadorLexico();
         comandoCondicional();
-    else if (!strcmp(atual.val, "while")) 
+    } else if (!strcmp(atual.val, "while")) {
+        analisadorLexico();
         comandoRepetitivo();
-    else {
+    } else {
         printf("ERRO\n");
         exit(1);
     }
@@ -191,58 +226,161 @@ void atribuicao ()
 
 void desvios()
 {
-
+    if (!strcmp(atual.val, "goto")) {
+        analisadorLexico();
+        numero();
+    }
+    else {
+        printf("ERRO\n");
+        exit(1);
+    }
 }
 
 void comandoCondicional()
 {
+    if (!strcmp(atual.val, "if")) {
+        analisadorLexico();
+        expressao();
 
+        if (!strcmp(atual.val, "then")) {
+            analisadorLexico();
+            comandoSemRotulo();
+            
+            if (!strcmp(atual.val, "else")) {
+                analisadorLexico();
+                comandoSemRotulo();
+            }
+        }
+        else {
+            printf("ERRO\n");
+            exit(1);
+        }
+    }
+    else {
+        printf("ERRO\n");
+        exit(1);
+    }
 }
 
 void comandoRepetitivo()
 {
-    
+    if (!strcmp(atual.val, "while")){
+        analisadorLexico();
+        expressao();
+
+        if (!strcmp(atual.val, "do")){
+            analisadorLexico();
+            comandoSemRotulo();
+        } else {
+            printf("ERRO\n");
+            exit(1);
+        }
+    }   
+    else{
+        printf("ERRO\n");
+        exit(1);
+    }
 }
 
 void listaExpressoes()
 {
-
+    expressao();
+    
+    while (!strcmp(atual.val, ",")) {
+        analisadorLexico();
+        expressao();
+    }
 }
 
 void relacao()
 {
-
+    if(atual.tipoToken == compoundOperator || !strcmp(atual.val, '>')
+    || !strcmp(atual.val, '<') || !strcmp(atual.val, '=') 
+    || strcmp(atual.val, ':=')){
+        analisadorLexico();
+    } else{
+        printf("ERRO\n");
+        exit(1);
+    }
 }
 
 void expressao()
 {
 
+    expressaoSimples();
+    if(atual.tipoToken == compoundOperator || !strcmp(atual.val, '>')
+            || !strcmp(atual.val, '<') || !strcmp(atual.val, '=') 
+            || strcmp(atual.val, ':=')) {
+        relacao();
+        expressaoSimples();
+    }
+    
 }
 
 void expressaoSimples()
 {
-
+    if(!strcmp(atual.val, "+") || !strcmp(atual.val, "-") ){
+            analisadorLexico();
+            termo();
+        while(!strcmp(atual.val, "+") ||!strcmp(atual.val, "-") ||!strcmp(atual.val, "or")){ 
+                analisadorLexico();
+                termo();
+        }
+    }
+    else {
+        printf("ERRO\n");
+        exit(1);   
+    }
 }
 
 void termo()
 {
-
-
+    fator();
+    while(!strcmp(atual.val, "*") ||!strcmp(atual.val, "div") ||!strcmp(atual.val, "and")){
+        analisadorLexico();
+        fator();
+    }
+        
 }
 
 void fator()
 {
-    
+    if (atual.tipoToken == identifier) {
+        variavel();
+    }
+    else if(atual.tipoToken == number) {
+        numero();
+    }
+    else if(!strcmp(atual.val, "(")) {
+        analisadorLexico();
+        expressao();
+        if (!strcmp(atual.val, ")") {
+            analisadorLexico();
+        }
+        else {
+            printf("ERRO\n");
+            exit(1);   
+        }
+    }
+    else if (!strcmp(atual.val, "not")) {
+        fator();
+    }
+    else {
+        printf("ERRO\n");
+        exit(1);   
+    }
 }
 
 
 
 void variavel()
 {
-    if (atual.tipoToken == identifier)
+    if (atual.tipoToken == identifier) {
         analisadorLexico();
+        if (
+    }
     else {
-        printf("ERRO");
+        printf("ERRO\n");
         exit(1);
     }
 }
@@ -252,7 +390,7 @@ void numero()
     if (atual.tipoToken == number)
         analisadorLexico();
     else {
-        printf("ERRO");
+        printf("ERRO\n");
         exit(1);
     }
 }
@@ -262,7 +400,7 @@ void identificador()
     if (atual.tipoToken == identifier)
         analisadorLexico();
     else {
-        printf("ERRO");
+        printf("ERRO\n");
         exit(1);
     }
 }
