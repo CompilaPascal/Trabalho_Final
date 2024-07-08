@@ -68,6 +68,25 @@ char proximo(FILE *file)
     return buf;
 }
 
+void consomeComentario(FILE *file)
+{
+    char pas, prox;
+
+    pas = proximo(file);
+    consumiu();
+    prox = proximo(file);
+    consumiu();
+
+    while (1) {
+        if (pas == '*' && prox == ')')
+            break;
+        pas = prox;
+        prox = proximo(file);
+        consumiu();
+    }
+}
+
+
 tokens *count;
 
 void analisadorLexico(FILE *file)
@@ -99,21 +118,25 @@ void analisadorLexico(FILE *file)
                     s = strcat(s, prox);
                     consumiu();
                     count->compoundOperator++;
-                    continue;
+                    atual.val = strdup(s);
+                    atual.tipoToken = compoundOperator;
+                    return;
                 }
             }
             else if (s[0] == '(') {
                 *prox = proximo(file);
                 if (*prox == '*') {
                     consumiu();
-                    past = *count;
-                    count->delimiter++;
-                    count->operator++;
+                    consomeComentario(file);
+                    count->comments++;
                     continue;
                 }
             }
 
+            atual.val = strdup(s);
+            atual.tipoToken = delimiter;
             count->delimiter++;
+            return;
         }
         else if (operador(*prox)) {
             consumiu();
@@ -124,8 +147,10 @@ void analisadorLexico(FILE *file)
                 if (*prox == '=') {
                     s = strcat(s, prox);
                     consumiu();
+                    atual.val = strdup(s);
+                    atual.tipoToken = compoundOperator;
                     count->compoundOperator++;
-                    continue;
+                    return;
                 } 
             }
             else if (s[0] == '<') {
@@ -134,20 +159,16 @@ void analisadorLexico(FILE *file)
                     s = strcat(s, prox);
                     consumiu();
                     count->compoundOperator++;
-                    continue;
+                    atual.val = strdup(s);
+                    atual.tipoToken = compoundOperator;
+                    return;
                 } 
             }
-            else if (s[0] == '*') {
-                *prox = proximo(file);
-                if (*prox == ')') {
-                    consumiu();
-                    *count = past;
-                    count->comments++;
-                    continue;
-                }
-            }
 
+            atual.val = strdup(s);
+            atual.tipoToken = operator;
             count->operator++;
+            return;
         }
         else if (isalpha(*prox)) {
             do {
@@ -157,10 +178,17 @@ void analisadorLexico(FILE *file)
             } while(isalnum(*prox));
 
             if (palavraReservada(s)) {
+                atual.val = strdup(s);
+                atual.tipoToken = keyword;
                 count->keyword++;
+                return;
             }
-            else 
+            else {
+                atual.val = strdup(s);
+                atual.tipoToken = identifier;
                 count->identifier++;
+                return;
+            }
         }
         else if (isdigit(*prox)) {
             do {
@@ -185,15 +213,24 @@ void analisadorLexico(FILE *file)
                         *prox = proximo(file);
                     } while(isdigit(*prox));
                 }
-                else
+                else {
+                    atual.val = strdup(s);
+                    atual.tipoToken = delimiter;
                     count->delimiter++;
+                    return;
+                }
             }
-
+            atual.val = strdup(s);
+            atual.tipoToken = number;
             count->number++;
+            return;
         }
         else {
+            atual.val = strdup(s);
+            atual.tipoToken = unknown;
             count->unknown++;
             consumiu();
+            return;
         }
     }
 }

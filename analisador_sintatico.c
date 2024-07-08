@@ -354,7 +354,7 @@ void fator()
     else if(!strcmp(atual.val, "(")) {
         analisadorLexico();
         expressao();
-        if (!strcmp(atual.val, ")") {
+        if (!strcmp(atual.val, ")")) {
             analisadorLexico();
         }
         else {
@@ -377,7 +377,9 @@ void variavel()
 {
     if (atual.tipoToken == identifier) {
         analisadorLexico();
-        if (
+        if (){
+            
+        }
     }
     else {
         printf("ERRO\n");
