@@ -300,7 +300,7 @@ void programa(FILE *file)
             }
             else {
                 printf("Rejeito\n");
-                exit(1);
+                exit(0);
             }
         }
         if (!strcmp(atual.val, ";")) {
@@ -308,7 +308,7 @@ void programa(FILE *file)
         }
         else {
             printf("Rejeito\n");
-            exit(1);
+            exit(0);
         }
 
         bloco(file);
@@ -318,7 +318,7 @@ void programa(FILE *file)
         }
         else {
             printf("Rejeito\n");
-            exit(1);
+            exit(0);
         }
     } else{
         printf("Rejeito\n");
@@ -331,11 +331,9 @@ void programa(FILE *file)
 void bloco(FILE *file)
 {
     if (!strcmp(atual.val, "label")) {
-        analisadorLexico(file);
         declaracaoRotulo(file);
     }
     if (!strcmp(atual.val, "var")){
-        analisadorLexico(file);
         parteDeclaracaoVariaveis(file);
     }
 
@@ -357,12 +355,12 @@ void declaracaoRotulo(FILE *file)
             analisadorLexico(file);
         } else {
             printf("Rejeito\n");
-            exit(1);
+            exit(0);
         }
     }
     else{
         printf("Rejeito\n");
-        exit(1);
+        exit(0);
     }
 }
 
@@ -372,20 +370,19 @@ void definicaoTipo(FILE *file)
         analisadorLexico(file);
     else {
         printf("Rejeito\n");
-        exit(1);
+        exit(0);
     }
 }
 
 void parteDeclaracaoVariaveis(FILE *file)
 {
-    if (strcmp(atual.val, "var")) {
+    if (!strcmp(atual.val, "var")) {
         analisadorLexico(file);
         declaracaoVariaveis(file);
-        analisadorLexico(file);
 
         if (strcmp(atual.val, ";")) {
             printf("Rejeito\n");
-            exit(1);
+            exit(0);
         }
 
         analisadorLexico(file);
@@ -398,13 +395,13 @@ void parteDeclaracaoVariaveis(FILE *file)
                 analisadorLexico(file);
             } else {
                 printf("Rejeito\n");
-                exit(1);
+                exit(0);
             }
         }
     }
     else {
         printf("Rejeito\n");
-        exit(1);
+        exit(0);
     }
 }
 
@@ -418,7 +415,7 @@ void declaracaoVariaveis (FILE *file)
     }
     else {
         printf("Rejeito\n");
-        exit(1);
+        exit(0);
     }
 }
 
@@ -439,12 +436,15 @@ void comandoComposto (FILE *file)
         
         while(!strcmp(atual.val, ";")) {
             analisadorLexico(file);
+            if (!strcmp(atual.val, "end")){
+                break; 
+            }
             comando(file);
         }
 
         if (strcmp(atual.val, "end")) {
             printf("Rejeito\n");
-            exit(1);
+            exit(0);
         }
         else {
             analisadorLexico(file);
@@ -452,7 +452,7 @@ void comandoComposto (FILE *file)
     }
     else {
         printf("Rejeito\n");
-        exit(1);
+        exit(0);
     }
 }
 
@@ -465,7 +465,7 @@ void comando (FILE *file)
             analisadorLexico(file);
         } else {
             printf("Rejeito\n");
-            exit(1);
+            exit(0);
         }
     }
     comandoSemRotulo(file);
@@ -479,6 +479,12 @@ void write(FILE *file)
         if(!strcmp(atual.val, "(")){
             analisadorLexico(file);
             numero(file);
+
+            while (!strcmp(atual.val, ",")) {
+                analisadorLexico(file);
+                numero(file);
+            }
+
             if (!strcmp(atual.val, ")")) {
                 analisadorLexico(file);
             } else {
@@ -500,7 +506,13 @@ void read(FILE *file)
         analisadorLexico(file);
         if (!strcmp(atual.val, "(")) {
             analisadorLexico(file);
-            numero(file);
+            variavel(file);
+
+            while (!strcmp(atual.val, ",")) {
+                analisadorLexico(file);
+                variavel(file);
+            }
+
             if (!strcmp(atual.val, ")")) {
                 analisadorLexico(file);
             }
@@ -537,7 +549,7 @@ void comandoSemRotulo(FILE *file)
         read(file);
     }else{
         printf("Rejeito\n");
-        exit(1);
+        exit(0);
     }
 }
 
@@ -550,7 +562,7 @@ void atribuicao (FILE *file)
     }
     else {
         printf("Rejeito\n");
-        exit(1);
+        exit(0);
     }
 }
 
@@ -562,7 +574,7 @@ void desvios(FILE *file)
     }
     else {
         printf("Rejeito\n");
-        exit(1);
+        exit(0);
     }
 }
 
@@ -583,12 +595,12 @@ void comandoCondicional(FILE *file)
         }
         else {
             printf("Rejeito\n");
-            exit(1);
+            exit(0);
         }
     }
     else {
         printf("Rejeito\n");
-        exit(1);
+        exit(0);
     }
 }
 
@@ -603,12 +615,12 @@ void comandoRepetitivo(FILE *file)
             comandoSemRotulo(file);
         } else {
             printf("Rejeito\n");
-            exit(1);
+            exit(0);
         }
     }   
     else{
         printf("Rejeito\n");
-        exit(1);
+        exit(0);
     }
 }
 
@@ -630,13 +642,12 @@ void relacao(FILE *file)
         analisadorLexico(file);
     } else{
         printf("Rejeito\n");
-        exit(1);
+        exit(0);
     }
 }
 
 void expressao(FILE *file)
 {
-
     expressaoSimples(file);
     if(atual.tipoToken == compoundOperator || !strcmp(atual.val,">")
             || !strcmp(atual.val, "<") || !strcmp(atual.val, "=") 
@@ -651,15 +662,11 @@ void expressaoSimples(FILE *file)
 {
     if(!strcmp(atual.val, "+") || !strcmp(atual.val, "-") ){
             analisadorLexico(file);
-            termo(file);
-        while(!strcmp(atual.val, "+") ||!strcmp(atual.val, "-") ||!strcmp(atual.val, "or")){ 
-                analisadorLexico(file);
-                termo(file);
-        }
     }
-    else {
-        printf("Rejeito\n");
-        exit(1);   
+    termo(file);
+    while(!strcmp(atual.val, "+") ||!strcmp(atual.val, "-") ||!strcmp(atual.val, "or")){ 
+        analisadorLexico(file);
+        termo(file);
     }
 }
 
@@ -689,7 +696,7 @@ void fator(FILE *file)
         }
         else {
             printf("Rejeito\n");
-            exit(1);   
+            exit(0);   
         }
     }
     else if (!strcmp(atual.val, "not")) {
@@ -697,7 +704,7 @@ void fator(FILE *file)
     }
     else {
         printf("Rejeito\n");
-        exit(1);   
+        exit(0);   
     }
 }
 
@@ -710,7 +717,7 @@ void variavel(FILE *file)
     }
     else {
         printf("Rejeito\n");
-        exit(1);
+        exit(0);
     }
 }
 
@@ -720,7 +727,7 @@ void numero(FILE *file)
         analisadorLexico(file);
     else {
         printf("Rejeito\n");
-        exit(1);
+        exit(0);
     }
 }
 
@@ -730,7 +737,7 @@ void identificador(FILE *file)
         analisadorLexico(file);
     else {
         printf("Rejeito\n");
-        exit(1);
+        exit(0);
     }
 }
 
